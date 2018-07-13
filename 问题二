@@ -1,0 +1,145 @@
+
+# coding: utf-8
+
+# In[1]:
+
+
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+from pandas import Series
+from scipy.spatial.distance import pdist
+from sklearn import preprocessing
+from sklearn import feature_extraction  
+from sklearn.feature_extraction.text import TfidfTransformer  
+from sklearn.feature_extraction.text import CountVectorizer  
+
+
+# In[5]:
+
+
+f1 = open('电视产品信息数据分词结果.txt',encoding='utf-8')
+df1 = pd.read_csv(f1)
+df1.to_csv('电视产品信息数据分词结果.csv',encoding='utf_8_sig')
+
+
+# f3 = open('final综合.txt',encoding='utf-8')
+# df3 = pd.read_table(f3)
+# f4 = open('测试点播结果.csv')
+# df4 = pd.read_csv(f4)
+# f5 = open('final电视产品全信息.txt',encoding='utf-8' )
+# df5 = pd.read_table(f5)
+
+# In[17]:
+
+
+df = pd.merge(df1,df2,how = 'outer')
+
+
+# In[18]:
+
+
+df.to_csv('综合回看与收视',encoding='utf_8_sig')
+
+
+# In[17]:
+
+
+df3.columns = ['用户号','收看频道','回看频道']
+df4 = df3.set_index('用户号')
+
+
+# In[49]:
+
+
+file=open('data.txt','w')  
+file.write(str(arr1));  
+file.close()  
+
+
+# In[3]:
+
+
+f6 = open('测试用户综合信息.csv' )
+df6 = pd.read_csv(f6)
+df6
+
+
+# In[37]:
+
+
+df8 = df6[df6.平均分 > 0.3]
+
+
+# In[39]:
+
+
+df8.to_csv('测试点播结果2',encoding='utf_8_sig')
+
+
+# In[9]:
+
+
+f9 = open('综合回看与收视.csv')
+df9 = pd.read_csv(f9)
+f10 = open('综合回看与收视不待用户号提取关键字.txt',encoding='utf-8')
+df10 = pd.read_table(f10)
+df9['关键字提取'] = df10
+
+
+# In[11]:
+
+
+df9
+
+
+# In[13]:
+
+
+df9.to_csv('综合回看与收视加上关键字',encoding='utf_8_sig')
+
+
+# In[14]:
+
+
+f11 = open('综合回看与收视加上关键字.csv')
+df11 = pd.read_csv(f11)
+
+
+# In[18]:
+
+
+df12 = df11.groupby('用户号')
+
+
+# In[20]:
+
+
+df13 = df12.describe()
+
+
+# In[21]:
+
+
+df13.to_csv('fina关键字提取',encoding='utf_8_sig')
+
+
+# In[7]:
+
+
+df14 =df.set_index('用户号')
+df14
+
+
+# In[2]:
+
+
+f1 = open('电视产品信息数据新出现分词结果.txt',encoding='utf-8')
+df1 = pd.read_csv(f1)
+
+
+# In[4]:
+
+
+df1.to_csv('新分词.csv',encoding='utf_8_sig')
+
