@@ -1,0 +1,134 @@
+
+# coding: utf-8
+
+# In[35]:
+
+
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+from pandas import Series
+from scipy.spatial.distance import pdist
+from sklearn import preprocessing
+
+
+# In[2]:
+
+
+f4 = open('用户单片点播信息.csv')
+df = pd.read_csv(f4)
+
+
+# In[3]:
+
+
+df1 = df.set_index(['用户号','频道名'])
+
+
+# In[4]:
+
+
+df3 = df1
+df4 = df3[pd.to_timedelta(df3.收看时长) < pd.to_timedelta('12:00:00')]
+df_wash = DataFrame(df4)
+
+
+# 去除大于12小时的异常数据
+
+# In[5]:
+
+
+df_wash.to_csv('清洗后的数据',encoding='utf_8_sig')
+
+
+# 数据的保存操作
+
+# In[6]:
+
+
+df5 = df4.reset_index()
+df5['收看时长']=pd.to_timedelta(df5.收看时长)
+df5['收看时长']=pd.to_numeric(df5.收看时长)
+
+
+# In[7]:
+
+
+def function(df):
+    y_pingjun = np.array(df.收看平均时长)
+    time_array = np.array(df.收看时长)
+    time_array.reshape((-1,1))
+    y_pingjun.reshape((-1,1))
+    n = time_array.shape[0]
+    distence = []
+    for i in range(0,n):
+        d1=np.sqrt(np.sum(np.square(time_array[i]-y_pingjun[i])))
+        distence.append(d1)                
+        return distence
+    distence1 = preprocessing.scale(distence)
+    df['距离标准化'] = distence1
+    df_final = df.sort_values('距离标准化',ascending=True)
+    return df_final
+
+
+# In[8]:
+
+
+df7 = df5.groupby('用户号').mean()
+df7.columns = ['收看平均时长']
+
+
+# In[9]:
+
+
+df8 = df5.groupby(['用户号','频道名']).mean()
+
+
+# In[10]:
+
+
+df9 = pd.merge(df7,df8,how = 'inner',right_index=True,left_index=True)
+df10 = df9.reset_index()
+df11 = df10.groupby(['用户号','频道名']).apply(function)
+
+
+# In[11]:
+
+
+df12 = DataFrame(df11)
+df12.columns = ['距离']
+
+
+# In[12]:
+
+
+df13 = df12.reset_index()
+distence = preprocessing.scale(list(df13.距离))
+df13['距离归一化'] = distence
+df14 = df13.set_index(['用户号','频道名'])
+
+
+# In[13]:
+
+
+df_final = df14.to_csv('用户单片点播信息结果.csv',encoding='utf_8_sig')
+
+
+# In[38]:
+
+
+f4 = open('问题二推荐.csv')
+df4 = pd.read_csv(f4)
+
+
+# In[39]:
+
+
+df5 = df4.groupby(['用户号']).head(10)
+
+
+# In[40]:
+
+
+df5.to_csv('201801656问题二.csv',encoding='utf_8_sig')
+
