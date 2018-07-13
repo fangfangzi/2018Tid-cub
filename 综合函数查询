@@ -1,0 +1,185 @@
+
+# coding: utf-8
+
+# In[9]:
+
+
+import pandas as pd
+import numpy as np
+import jieba
+from pandas import DataFrame
+import jieba.posseg as pseg
+from gensim import corpora, models, similarities
+import sys
+import jieba.analyse as analyse
+import csv
+import logging
+import re
+
+
+# In[1]:
+
+
+def stopwordslist(filepath):
+    stopwords = [line.strip() for line in open(filepath, 'r').readlines()]  
+    return stopwords
+
+
+# In[2]:
+
+
+def division(old,new):
+    file_object2=open(old,encoding='UTF-8').read().split('\n')
+    Rs2=[]
+    for i in range(len(file_object2)):  
+        result=[]  
+        seg_list = jieba.cut(file_object2[i])  
+        for w in seg_list :
+            if w not in stopwordslist('停词表2.txt'):            
+                result.append(w)            
+        Rs2.append(result)
+
+    file=open(new,'w',encoding='UTF-8')  
+    writer = csv.writer(file) 
+    writer.writerows(Rs2)
+
+    file.close()   
+
+
+# In[3]:
+
+
+def delete_noturn(old,final):
+    file_object3=open(old,encoding='UTF-8').read().split('\n')
+    file2=open(final,'w',encoding='UTF-8')
+    r ="[\s+\.\!\/_,$%^*(+\"\']+|[+——[！，]。？【】、~@#￥%……&*（）]+"
+
+    for i in range(len(file_object3)):    
+        seg_list = re.sub(r,' ',file_object3[i])
+        file2.write(seg_list)
+
+    file2.close()
+
+
+# In[4]:
+
+
+def delete_turn(old,final):
+    file_object3=open(old,encoding='UTF-8').read().split('\n')
+    file2=open(final,'w',encoding='UTF-8')
+    r ="[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）]+"
+
+    for i in range(len(file_object3)):    
+        seg_list = re.sub(r,' ',file_object3[i])
+        file2.write(seg_list+'\n')
+
+    file2.close()
+
+
+# In[5]:
+
+
+def delete_noblank(old,final):
+    file_object3=open(old,encoding='UTF-8').read().split('\n')
+    file2=open(final,'w',encoding='UTF-8')
+    r ="[\s+\.\!\/_,$%^*(+\"\']+|[+——[！，]。？【】、~@#￥%……&*（）]+"
+
+    for i in range(len(file_object3)):    
+        seg_list = re.sub(r,'',file_object3[i])
+        file2.write(seg_list)
+
+    file2.close()
+
+
+# In[6]:
+
+
+def similarity(datapath, querypath, storepath):
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+    class MyCorpus(object):
+        def __iter__(self):
+            for line in open(datapath,encoding='UTF-8'):
+                yield line.split()
+
+    Corp = MyCorpus()
+    dictionary = corpora.Dictionary(Corp)
+    corpus = [dictionary.doc2bow(text) for text in Corp]
+
+    tfidf = models.TfidfModel(corpus)
+
+    corpus_tfidf = tfidf[corpus]
+
+    q_file = open(querypath, 'r',encoding='UTF-8')
+    query = q_file.readline()
+    q_file.close()
+    vec_bow = dictionary.doc2bow(query.split())
+    vec_tfidf = tfidf[vec_bow]
+
+    index = similarities.MatrixSimilarity(corpus_tfidf)
+    sims = index[vec_tfidf]
+
+    similarity = list(sims)
+
+    sim_file = open(storepath, 'w',encoding='UTF-8')
+    for i in similarity:
+        sim_file.write(str(i)+'\n')
+    sim_file.close()
+
+
+# In[7]:
+
+
+division('电视产品信息数据新出现.txt','temp电视产品信息数据新出现.txt')
+
+
+# In[8]:
+
+
+delete_turn('temp电视产品全信息.txt','final电视产品全信息.txt')
+
+
+# In[64]:
+
+
+similarity('电视产品分词信息.txt','电视剧场和家庭影院.txt','outcome')
+
+
+# 思路：现在得到了所有产品全信息，将自己分的类别与之相比较，得到相似度，取高的分进去，用户同理
+
+# In[86]:
+
+
+def counter(old,new):
+    Rs = []
+    file_object2=open(old,encoding='UTF-8').read().split('\n')
+    file=open(new,'w',encoding='UTF-8')
+    for i in range(len(file_object2)): 
+        result = []
+        seg_list = jieba.analyse.extract_tags(file_object2[i],topK=3) 
+        for w in seg_list :
+            if w not in stopwordslist('停词表2.txt'):                    
+                result.append(w)            
+        Rs.append(result)
+    writer = csv.writer(file) 
+    writer.writerows(Rs)
+    file.close()  
+
+
+# In[88]:
+
+
+counter('综合回看与收视不待用户号.txt','综合回看与收视不待用户号提取关键字.txt')
+
+
+# In[11]:
+
+
+division('电视产品信息数据新出现.txt','temp电视产品信息数据新出现分词.txt')
+
+
+# In[12]:
+
+
+delete_turn('temp电视产品信息数据新出现分词.txt','电视产品信息数据新出现分词结果.txt')
+
