@@ -1,0 +1,185 @@
+
+# coding: utf-8
+
+# In[1]:
+
+
+import pandas as pd
+import numpy as np
+import jieba
+from pandas import DataFrame
+import jieba.posseg as pseg
+from gensim import corpora, models, similarities
+import sys
+import jieba.analyse as analyse
+import csv
+import logging
+import re
+
+
+# In[2]:
+
+
+f1 = open('用户收视结果.csv')
+df1 = pd.read_csv(f1)
+f2 = open('用户回看结果.csv')
+df2 = pd.read_csv(f2)
+
+
+# In[3]:
+
+
+df = pd.merge(df1,df2,how = 'outer')
+
+
+# In[4]:
+
+
+df.to_csv('综合回看与收视',encoding='utf_8_sig')
+
+
+# In[6]:
+
+
+f3 = open('综合回看与收视用于提取关键词.csv')
+df3 = pd.read_csv(f3)
+
+
+# In[8]:
+
+
+df4 = df3[df3['平均分']>0.4]
+df4.to_csv('综合回看与收视用于提取关键词.csv',encoding='utf_8_sig')
+
+
+# In[9]:
+
+
+def stopwordslist(filepath):
+    stopwords = [line.strip() for line in open(filepath, 'r').readlines()]  
+    return stopwords
+
+
+# In[10]:
+
+
+def division(old,new):
+    file_object2=open(old,encoding='UTF-8').read().split('\n')
+    Rs2=[]
+    for i in range(len(file_object2)):  
+        result=[]  
+        seg_list = jieba.cut(file_object2[i])  
+        for w in seg_list :
+            if w not in stopwordslist('停词表2.txt'):            
+                result.append(w)            
+        Rs2.append(result)
+
+    file=open(new,'w',encoding='UTF-8')  
+    writer = csv.writer(file) 
+    writer.writerows(Rs2)
+
+    file.close()   
+
+
+# In[28]:
+
+
+division('提取关键词中间步骤.txt','提取关键词分词结果.txt')
+
+
+# In[13]:
+
+
+def delete_turn(old,final):
+    file_object3=open(old,encoding='UTF-8').read().split('\n')
+    file2=open(final,'w',encoding='UTF-8')
+    r ="[\s+\.\!\/_,$%^*(+\"\']+|[+——[！，]。？【】、~@#￥%……&*（）]+"
+
+    for i in range(len(file_object3)):    
+        seg_list = re.sub(r,' ',file_object3[i])
+        file2.write(seg_list+'\n')
+
+    file2.close()
+
+
+# In[14]:
+
+
+def counter(old,new):
+    Rs = []
+    file_object2=open(old,encoding='UTF-8').read().split('\n')
+    file=open(new,'w',encoding='UTF-8')
+    for i in range(len(file_object2)): 
+        result = []
+        seg_list = jieba.analyse.extract_tags(file_object2[i],topK=3) 
+        for w in seg_list :
+            if w not in stopwordslist('停词表2.txt'):                    
+                result.append(w)            
+        Rs.append(result)
+    writer = csv.writer(file) 
+    writer.writerows(Rs)
+    file.close()  
+
+
+# In[29]:
+
+
+delete_turn('提取关键词分词结果.txt','提取关键词去逗号结果.txt')
+
+
+# In[30]:
+
+
+counter('提取关键词去逗号结果.txt','提取关键词最终结果.txt')
+
+
+# In[31]:
+
+
+f4 = open('提取关键词最终结果.txt',encoding='utf-8')
+df4 = pd.read_csv(f4)
+
+
+# In[32]:
+
+
+df5 = df3.pop('用户号')
+
+
+# In[33]:
+
+
+df6 = DataFrame(df5)
+df6.columns = (['用户号'])
+df4['用户号'] = df6
+
+
+# In[34]:
+
+
+df7 = df4.groupby('用户号')
+
+
+# In[21]:
+
+
+df_final = df7.describe()
+
+
+# In[22]:
+
+
+df_final.to_csv('用户的标签.csv',encoding='utf_8_sig')
+
+
+# In[35]:
+
+
+df8 = df4.set_index('用户号')
+
+
+# In[36]:
+
+
+df8.to_csv('用户的详细标签.csv',encoding='utf_8_sig')
+
